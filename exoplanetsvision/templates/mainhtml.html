@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JacExo</title>
+    <style>
+        * {
+            font-family: "Poppins", sans-serif;
+            font-weight: 300;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            background-image: url('https://science.nasa.gov/wp-content/uploads/2023/04/c1-wfc3-jpg.webp?w=4096&format=png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .categories-container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        .category {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .category-title {
+            padding: 10px;
+            background-color: #ccc;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .filter-bar {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        button {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 15px;
+            font-weight: 600;
+            background-color: rgb(15, 155, 236);
+            color: #ffffff;
+            margin: 20 auto;
+            display: block;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: rgb(10, 120, 180); /* Darken button on hover */
+        }
+        .result-container {
+            display: none; /* Initially hide the result container */
+            align-items: flex-start; /* Align items at the start vertically */
+            margin-top: 20px; /* Space between button and results */
+            max-width: 500px;
+        }
+        img {
+            margin-right: 20px; /* Space between image and text */
+            max-width: 200px; /* Adjust size as needed */
+        }
+        p {
+            color: blue; /* Set text color */
+            margin: 0; /* Remove margin for better alignment */
+            size: 30px;
+        }
+        #planetwriteup {
+            color: black;
+        }
+        #theDiv {
+            padding: 10px;
+            background-color: #ccc;
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: rgb(255, 255, 0);">Exovis</h1>
+    <div class="categories-container">
+        <div class="category">
+            <div class="category-title">Host Star Temperature</div>
+            <div class="filter-bar">
+                <label class="filter-option">
+                    <input type="radio" name="starTemp" value="h"> Hot (blue star)
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="starTemp" value="c"> Cold (red star)
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="starTemp" value="s"> Sun-like (yellow star)
+                </label>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title">Distance from the star</div>
+            <div class="filter-bar">
+                <label class="filter-option">
+                    <input type="radio" name="distance" value="c"> Closer than the habitable zone
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="distance" value="i"> Inside habitable zone
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="distance" value="f"> Farther than the habitable zone
+                </label>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title">Planet type</div>
+            <div class="filter-bar">
+                <label class="filter-option">
+                    <input type="radio" name="planettype" value="g"> Gaseous
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="planettype" value="n"> Neptunian
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="planettype" value="r"> Rocky
+                </label>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title">Atmospheric Chemical Composition</div>
+            <div class="filter-bar">
+                <label class="filter-option">
+                    <input type="radio" name="comp" value="nh3"> Mainly Ammonia
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="comp" value="ch4"> Mainly Methane
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <button id="btn" class="button-action">Submit</button>
+    </div>
+
+    <div class="result-container">
+            <img id="resultImage" src="" alt="Generated Image">
+        <div id="theDiv">
+            <p id="surface_temp"></p>
+            <div>
+                <h4 id="planetwriteup"></h4>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn').addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const selectedStarTemp = document.querySelector('input[name="starTemp"]:checked');
+            const selectedDistance = document.querySelector('input[name="distance"]:checked');
+            const selectedTypes = document.querySelector('input[name="planettype"]:checked');
+            const chemComp = document.querySelector('input[name="comp"]:checked');
+
+            // Check if selections are made
+            if (!selectedStarTemp || !selectedDistance) {
+                alert("Please select both a star temperature and a distance from the star.");
+                return;
+            }
+
+            // Prepare JSON data
+            const data = [selectedStarTemp.value, selectedDistance.value, selectedTypes.value, chemComp.value];
+
+            // Make a POST request to the Flask server
+            fetch('/post', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                const imgUrl = `data:image/png;base64,${responseData.image}`;
+                const imgElement = document.getElementById('resultImage');
+                imgElement.src = imgUrl; // Set the image source
+                imgElement.style.display = 'block'; // Show the image
+
+                // Update surface temperature display with the value from responseData
+                const surface_temp = document.getElementById('surface_temp');
+                surface_temp.textContent = `Surface Temperature: ${responseData.surfaceTemperature}`;
+
+                // Update writeup display with the value from responseData
+                const writeup = document.getElementById('planetwriteup');
+                writeup.textContent = `Info: ${responseData.planetwriteup}`;
+
+                // Show the result container
+                document.querySelector('.result-container').style.display = 'flex'; // Show the results
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("An error occurred while processing your request. Please try again.");
+            });
+        });
+    </script>
+</body>
+</html>
